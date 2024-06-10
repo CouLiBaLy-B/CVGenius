@@ -16,6 +16,7 @@ license: apache-2.0
 CV Genius est une application web développée avec Streamlit qui utilise des modèles d'intelligence artificielle pour aider les utilisateurs dans leur processus de candidature. Elle fournit des fonctionnalités telles que le scoring de CV par rapport à une offre d'emploi, la génération de lettres de motivation personnalisées et l'amélioration des CV.
 
 ![alt text](image.png)
+App link : https://extia-cvgenius.streamlit.app/
 ## Fonctionnalités
 
 - **Score de correspondance CV/Offre d'emploi** : Évalue la correspondance entre le CV d'un candidat et une offre d'emploi spécifique en attribuant un score sur 100 et en identifiant les points forts et les points faibles.
