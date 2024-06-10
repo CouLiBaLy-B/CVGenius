@@ -10,6 +10,7 @@ from scr.models import (
     ResumeGenerator,
     MailCompletion,
 )
+from scr.documentation import documentations
 from scr.logs import add_user, check_credentials, logout
 
 from PIL import Image
@@ -169,6 +170,9 @@ st.sidebar.markdown(
     améliorer votre CV.</div>""",
     unsafe_allow_html=True,
 )
+
+with st.sidebar.expander("HuggingFace Accees Key"):
+    documentations()
 
 # override the theme, else it will use the Streamlit applied theme
 over_theme_ = {
