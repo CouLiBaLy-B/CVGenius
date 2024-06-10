@@ -1,0 +1,11 @@
+streamlit
+streamlit-pills
+langchain
+langchain-community
+langchain-huggingface
+pdfminer-six
+streamlit-aggrid==0.2.2-2
+reportlab
+hydralit
+python-dotenv
+werkzeug
