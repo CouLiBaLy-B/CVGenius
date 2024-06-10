@@ -5,16 +5,9 @@ from requests.exceptions import HTTPError
 import streamlit as st
 from scr.utils import ModelError
 from abc import ABC, abstractmethod
-<<<<<<< HEAD
-import streamlit as st
 
 
 HUGGINGFACE_HUB_API_TOKEN = st.secrets("huggingface_api_key")
-=======
-
-
-HUGGINGFACE_HUB_API_TOKEN = st.secret("huggingface_api_key")
->>>>>>> 1911b35a9d920a043167f754308b69b8dfdea496
 
 
 class ResumeAIStrategy(ABC):
