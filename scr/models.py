@@ -2,16 +2,12 @@ from langchain_huggingface.llms import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 
 from requests.exceptions import HTTPError
-
+import streamlit as st
 from scr.utils import ModelError
 from abc import ABC, abstractmethod
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
-HUGGINGFACE_HUB_API_TOKEN = os.getenv("huggingface_api_key")
+HUGGINGFACE_HUB_API_TOKEN = st.secret("huggingface_api_key")
 
 
 class ResumeAIStrategy(ABC):
