@@ -5,13 +5,10 @@ from requests.exceptions import HTTPError
 
 from scr.utils import ModelError
 from abc import ABC, abstractmethod
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+import streamlit as st
 
 
-HUGGINGFACE_HUB_API_TOKEN = os.getenv("huggingface_api_key")
+HUGGINGFACE_HUB_API_TOKEN = st.secrets("huggingface_api_key")
 
 
 class ResumeAIStrategy(ABC):
