@@ -12,10 +12,8 @@ from scr.models import (
 )
 from scr.logs import add_user, check_credentials, logout
 
-import os
 from PIL import Image
 
-# Ajoutez ceci après les importations
 logo_path = os.path.join(os.getcwd(), "images", "logo.png")
 logo = Image.open(logo_path)
 
@@ -427,4 +425,5 @@ with text:
                 unsafe_allow_html=True)
 
 with logo:
-    st.image(logo, use_column_width=True)
+    st.markdown('''<a href=https://www.linkedin.com/in/bourahima-coulibaly-6bb335218/> Extia Lille </a>''',
+                unsafe_allow_html=True)
