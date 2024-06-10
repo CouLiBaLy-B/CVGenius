@@ -10,10 +10,7 @@ from scr.models import (
     ResumeGenerator,
     MailCompletion,
 )
-from scr.logs import (add_user,
-                      check_credentials,
-                      logout, verify_email,
-                      send_verification_email)
+from scr.logs import add_user, check_credentials, logout
 
 from PIL import Image
 
@@ -98,7 +95,6 @@ menu_id = hc.nav_bar(
     sticky_mode="pinned",
 )
 
-
 # Onglet "Login"
 if menu_id == "Login":
     st.markdown("<div class='title'>Login</div>", unsafe_allow_html=True)
@@ -106,12 +102,11 @@ if menu_id == "Login":
     password = st.text_input("Mot de passe", type="password")
 
     if st.button("Se connecter"):
-        is_valid, message = check_credentials(username, password)
-        if is_valid:
-            st.success(message)
+        if check_credentials(username, password):
+            st.success("Connexion réussie !")
             st.session_state.logged_in = True
             st.session_state.username = username
-            st.rerun()
+            st.rerun()  # Recharger l'application pour refléter les changements
         else:
             st.error("Nom d'utilisateur ou mot de passe incorrect.")
 
@@ -119,7 +114,6 @@ if menu_id == "Login":
 if menu_id == "Sign Up":
     st.markdown("<div class='title'>Sign Up</div>", unsafe_allow_html=True)
     new_username = st.text_input("Nouveau nom d'utilisateur")
-    new_email = st.text_input("Adresse email")
     new_password = st.text_input("Nouveau mot de passe", type="password")
     confirm_password = st.text_input("Confirmer le mot de passe",
                                      type="password")
@@ -127,19 +121,13 @@ if menu_id == "Sign Up":
     if st.button("S'inscrire"):
         if new_password != confirm_password:
             st.error("Les mots de passe ne correspondent pas.")
+        elif add_user(new_username, new_password):
+            st.success(
+                "Inscription réussie ! Vous pouvez maintenant vous connecter."
+                )
+            st.rerun()
         else:
-            verification_token = add_user(new_username, new_email,
-                                          new_password)
-            if verification_token:
-                try:
-                    send_verification_email(new_email, verification_token)
-                    st.success("""Inscription réussie ! Veuillez vérifier
-                               votre email pour activer votre compte.""")
-                    
-                except Exception as e:
-                    st.error(f"Erreur lors de l'envoi de l'email : {e}")
-            else:
-                st.error("Ce nom d'utilisateur ou cet email existe déjà.")
+            st.error("Ce nom d'utilisateur existe déjà.")
 
 if menu_id == "Logout":
     logout()
@@ -158,13 +146,6 @@ if not st.session_state.get("logged_in", False):
     st.warning("Veuillez vous connecter pour accéder à l'application.")
     st.stop()
 
-verification_token = st.query_params["verification_token"]
-if verification_token:
-    if verify_email(verification_token):
-        st.success("""Votre email a été vérifié avec succès !
-                   Vous pouvez maintenant vous connecter.""")
-    else:
-        st.error("Lien de vérification invalide ou expiré.")
 st.sidebar.image(Image.open(os.path.join(os.getcwd(),
                                          "images",
                                          "background.jpg"
