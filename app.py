@@ -429,5 +429,6 @@ with text:
                 unsafe_allow_html=True)
 
 with logo:
-    st.markdown('''<a href=https://www.linkedin.com/in/bourahima-coulibaly-6bb335218/> Extia Lille </a>''',
+    st.markdown('''<a href=https://github.com/CouLiBaLy-B>
+                Extia Lille </a>''',
                 unsafe_allow_html=True)
