@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(
     )
 )
 from scr.utils import extract_text_from_pdf, ModelError
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 def test_extract_text_from_pdf():
