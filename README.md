@@ -10,62 +10,61 @@ pinned: false
 license: apache-2.0
 ---
 
-
 # CV Genius
 
-CV Genius est une application web développée avec Streamlit qui utilise des modèles d'intelligence artificielle pour aider les utilisateurs dans leur processus de candidature. Elle fournit des fonctionnalités telles que le scoring de CV par rapport à une offre d'emploi, la génération de lettres de motivation personnalisées et l'amélioration des CV.
+CV Genius est une application web Streamlit utilisant l'IA pour assister les utilisateurs dans leur processus de candidature. Elle offre des fonctionnalités telles que le scoring de CV, la génération de lettres de motivation et l'amélioration de CV.
 
-![alt text](image.png)
-App link : https://extia-cvgenius.streamlit.app/
+![Interface de l'application](image.png)
+[Lien vers l'application](https://extia-cvgenius.streamlit.app/)
+
 ## Fonctionnalités
 
-- **Score de correspondance CV/Offre d'emploi** : Évalue la correspondance entre le CV d'un candidat et une offre d'emploi spécifique en attribuant un score sur 100 et en identifiant les points forts et les points faibles.
-- **Rédaction de lettre de motivation** : Génère une lettre de motivation personnalisée en fonction du CV et de l'offre d'emploi.
-- **Amélioration de CV** : Améliore le CV en intégrant les compétences, qualifications et expériences pertinentes pour l'offre d'emploi visée.
-- **Completion de mail** : Complète un modèle de courrier électronique avec les informations du candidat tirées de son CV.
+- Scoring CV/Offre d'emploi
+- Génération de lettre de motivation
+- Amélioration de CV
+- Complétion de mail
 
 ## Prérequis
 
-- Python 3.8 ou version supérieure
-- Les dépendances listées dans le fichier `requirements.txt`
-- Un jeton d'API Hugging Face (à définir dans un fichier `.env`)
+- Python 3.8+
+- Dépendances du fichier `requirements.txt`
+- Jeton d'API Hugging Face
 
 ## Installation
 
-1. Clonez ce dépôt :
+1. Cloner le dépôt :
 
-```
+```bash
 git clone https://huggingface.co/spaces/bourahima/CvGeniusAI
 ```
 
 2. Installez les dépendances :
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
-3. Créez un fichier `.env` à la racine du projet et ajoutez votre jeton d'API Hugging Face :
+3. Configurer le jeton API :
+Créez un fichier `.env` à la racine du projet avec :
 
-```
+```txt
 huggingface_api_key=YOUR_API_TOKEN
 ```
 
 ## Utilisation
 
-1. Démarrez l'application Streamlit :
+1. Lancer l'application :
 
-```
+```bash
 streamlit run app.py
 ```
 
-2. Suivez les instructions dans l'interface utilisateur pour utiliser les différentes fonctionnalités de l'application.
+2. Suivre les instructions dans l'interface utilisateur.
 
 ## Contribution
 
-Les contributions sont les bienvenues ! Si vous souhaitez contribuer à ce projet, veuillez suivre les étapes suivantes :
-
-1. Fork ce dépôt
-2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/nouvelle-fonctionnalite`)
-3. Commitez vos modifications (`git commit -am 'Ajoute une nouvelle fonctionnalité'`)
-4. Poussez la branche (`git push origin feature/nouvelle-fonctionnalite`)
-5. Ouvrez une Pull Request
+1. Forker le dépôt
+2. Créer une branche (`git checkout -b feature/nouvelle-fonctionnalite`)
+3. Commiter les changements (`git commit -am 'Ajoute une nouvelle fonctionnalité'`)
+4. Pousser la branche (`git push origin feature/nouvelle-fonctionnalite`)
+5. Ouvrir une Pull Request
