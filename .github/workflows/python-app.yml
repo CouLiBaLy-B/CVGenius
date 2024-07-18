@@ -30,10 +30,6 @@ jobs:
     - name: Install project in editable mode
       run: |
         pip install -e .
-
-    - name: Add project directory to PYTHONPATH
-      run: echo "${{ github.workspace }}" >> $GITHUB_ENV
-    
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
