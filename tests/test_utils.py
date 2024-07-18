@@ -1,10 +1,4 @@
 import pytest
-import os
-import sys
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-    )
-)
 from scr.utils import extract_text_from_pdf, ModelError
 from unittest.mock import patch
 

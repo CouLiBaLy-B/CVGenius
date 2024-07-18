@@ -1,30 +1,25 @@
 import pytest
 from unittest.mock import patch
-import os
-import sys
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-    )
-)
+
 from ui.navigation.render_navigation import render_navigation
 
 
 @pytest.fixture
 def mock_hc():
-    with patch('ui.navigation.hc') as mock:
+    with patch('ui.navigation.render_navigation.hc') as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_over_theme():
-    with patch('ui.navigation.get_over_theme') as mock:
+    with patch('ui.navigation.render_navigation.get_over_theme') as mock:
         mock.return_value = {"some": "theme"}
         yield mock
 
 
 @pytest.fixture
 def mock_get_menu_data():
-    with patch('ui.navigation.get_menu_data') as mock:
+    with patch('ui.navigation.render_navigation.get_menu_data') as mock:
         mock.return_value = [{"id": "Test", "icon": "🏠", "label": "Test"}]
         yield mock
 

@@ -1,42 +1,44 @@
 import pytest
-from unittest.mock import patch, MagicMock
-import os
-import sys
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-    )
-)
+from unittest.mock import patch, MagicMock, mock_open
+
 from auth.authentification import authenticate_user, load_config
 
 
 @pytest.fixture
 def mock_st():
-    with patch('auth.authentication.st') as mock:
+    with patch('auth.authentification.st') as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_stauth():
-    with patch('auth.authentication.stauth') as mock:
+    with patch('auth.authentification.stauth') as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_yaml():
-    with patch('auth.config.yaml') as mock:
-        mock.load.return_value = {
+    with patch('builtins.open', mock_open(read_data="""
+credentials: {}
+cookie:
+  name: "test"
+  key: "test"
+  expiry_days: 30
+pre-authorized: {}
+    """)), patch('auth.authentification.yaml.safe_load') as mock_yaml_load:
+        mock_yaml_load.return_value = {
             'credentials': {},
             'cookie': {'name': 'test', 'key': 'test', 'expiry_days': 30},
-            'preauthorized': {}
+            'pre-authorized': {}
         }
-        yield mock
+        yield mock_yaml_load
 
 
 def test_load_config(mock_yaml):
     result = load_config()
     assert 'credentials' in result
     assert 'cookie' in result
-    assert 'preauthorized' in result
+    assert 'pre-authorized' in result
 
 
 def test_authenticate_user_success(mock_st, mock_stauth, mock_yaml):
