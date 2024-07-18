@@ -7,7 +7,7 @@ from scr.utils import ModelError
 from abc import ABC, abstractmethod
 
 
-HUGGINGFACE_HUB_API_TOKEN = st.secrets["HUGGINGFACE_HUB_API_TOKEN"]
+HUGGINGFACE_HUB_API_TOKEN = st.secrets.get("HUGGINGFACE_HUB_API_TOKEN", None)
 
 
 class ResumeAIStrategy(ABC):
