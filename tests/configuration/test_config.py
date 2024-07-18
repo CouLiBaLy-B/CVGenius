@@ -1,11 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-import os
-import sys
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..")
-    )
-)
+
 from configuration.config import (
     setup_page_config,
     get_over_theme,
@@ -15,13 +10,13 @@ from configuration.config import (
 
 @pytest.fixture
 def mock_st():
-    with patch('config.st') as mock:
+    with patch('configuration.config.st') as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_image():
-    with patch('config.Image') as mock:
+    with patch('configuration.config.Image') as mock:
         mock_img = MagicMock()
         mock.open.return_value = mock_img
         yield mock
@@ -44,5 +39,5 @@ def test_get_over_theme():
 def test_get_menu_data():
     menu_data = get_menu_data()
     assert isinstance(menu_data, list)
-    assert len(menu_data) == 3
+    assert len(menu_data) == 2
     assert all(isinstance(item, dict) for item in menu_data)

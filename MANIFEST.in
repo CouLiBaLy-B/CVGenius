@@ -1,0 +1,2 @@
+include README.md
+include auth/*.yaml  # or any other data files

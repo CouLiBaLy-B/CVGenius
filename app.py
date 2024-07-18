@@ -1,24 +1,34 @@
+import streamlit as st
+from auth.authentification import authenticate_user
 from ui.navigation.render_navigation import render_navigation
 from ui.home.render_home import render_home
 from ui.infos.render_infos import render_infos
 from ui.todos.render_todos import render_todos
-from auth.authentification import authenticate_user
 from configuration.config import setup_page_config
 from scr.documentation import documentations
 
 
-def main():
-    setup_page_config()
+def main(run_setup=True, test_mode=False):
+    if run_setup:
+        setup_page_config()
 
-    if authenticate_user():
-        menu_id = render_navigation()
+    is_authenticated = authenticate_user()
+
+    if test_mode:
+        return is_authenticated
+
+    if is_authenticated:
         documentations()
-        if menu_id == "Home":
+        selected_page = render_navigation()
+
+        if selected_page == "Home":
             render_home()
-        elif menu_id == "Infos":
+        elif selected_page == "Infos":
             render_infos()
-        elif menu_id == "To Do's":
+        elif selected_page == "To Do's":
             render_todos()
+    else:
+        st.error("Authentication failed")
 
 
 if __name__ == "__main__":
