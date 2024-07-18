@@ -6,7 +6,8 @@ from scr.models import (
     ScoreResumeJob,
     CoverLetterGenerator,
     ResumeImprover,
-    ResumeGenerator
+    ResumeGenerator,
+    MailCompletion
 )
 
 
@@ -93,5 +94,24 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
 
 
 def render_mail_completion():
-    # Implement mail completion logic here
-    pass
+    resume_pdf = st.file_uploader(
+            "Import ton CV en pdf", type="pdf", key="mail_resume"
+    )
+    if resume_pdf is not None:
+        try:
+            if st.button("Lancer", key="mail"):
+                with st.spinner("Wait for it..."):
+                    resume = extract_text_from_pdf(resume_pdf)
+                    generator = MailCompletion()
+                    mail_complet = generator.mailcompletion(resume=resume)
+                    st.write(mail_complet)
+                    pdf_output = generate_pdf(mail_complet)
+                    st.download_button(
+                        label="Télécharger le mail",
+                        data=pdf_output.getvalue(),
+                        file_name="mail.pdf",
+                        mime="application/pdf",
+                    )
+                st.success("Done!")
+        except Exception as e:
+            st.exception(f"Erreur {e}")

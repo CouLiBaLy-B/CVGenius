@@ -34,50 +34,41 @@ class ScoreResumeJob(ResumeAIStrategy):
 
     def generate(self, resume: str, job_advert: str) -> str:
         prompt = """Évaluez la correspondance entre le CV d'un candidat et
-        la description d'un poste en attribuant un score sur 100, en tenant
-        compte des éléments suivants par ordre d'importance :
+        la description du poste en attribuant un score sur 100. Tenez compte
+        des éléments suivants par ordre d'importance :
 
-        1. La dernière expérience professionnelle et sa durée
-        2. La deuxième expérience professionnelle et sa durée
-        3. Vérifiez s'il y a des trous dans son parcours professionnel
-        4. Le nom des formations, certifications et la renommée de l'université
-        5. Les technologies
-        6. Les projets
-        7. La participation de manière bénévole à des actions humanitaires
+        1. Dernière expérience professionnelle et sa durée
+        2. Deuxième expérience professionnelle et sa durée
+        3. Présence de lacunes dans le parcours professionnel
+        4. Formations, certifications et renommée des institutions
+        5. Technologies maîtrisées
+        6. Projets réalisés
+        7. Engagement dans des actions humanitaires
 
-        Doit tenir compte des informations sujaissantes, comme la maitrise
-        d'un langage de programmation implique maitrise des librairies et
-        des frameworks. Répondez selon le format suivant :
+        Notez que la maîtrise d'un langage de programmation implique la
+        connaissance des librairies et frameworks associés. Répondez
+        au format suivant :
 
-        Score de correspondance : [Score sur 100]
-        * Principaux points forts : [Liste des principaux points forts
-        du candidat]
-        * Principaux points faibles : [Liste des principaux points faibles
-        du candidat]
+        - Score de correspondance : [Score sur 100]
+        - Points forts : [Liste des principaux points forts du candidat]
+        - Points faibles : [Liste des principaux points faibles du candidat]
+        - Explication : [Paragraphe expliquant le score, les points forts
+        et faibles]
 
-        Explication : [Paragraphe expliquant le score attribué, en
-        détaillant les raisons des points forts et des points
-        faibles identifiés]
-
-        Exemple de réponse :
+        Exemple :
         Score de correspondance : 85/100
-        * Principaux points forts :
-        - Expérience pertinente de 5 ans dans un rôle similaire
-        - Maîtrise des technologies clés mentionnées dans la description
-        de poste
-        - Formation universitaire en rapport avec le domaine
+        Points forts :
+        - Expérience de 5 ans dans un rôle similaire
+        - Maîtrise des technologies requises
+        - Formation pertinente
 
-        * Principaux points faibles :
-        - Manque d'expérience avec un outil spécifique mentionné dans
-        la description de poste
-        - Aucune certification professionnelle listée
+        Points faibles :
+        - Manque d'expérience avec un outil spécifique
+        - Absence de certifications professionnelles
 
-        Explication : Le candidat semble très bien qualifié pour ce poste
-        grâce à son expérience substantielle, ses compétences techniques et sa
-        formation appropriée. Cependant, le manque d'expérience avec un outil
-        spécifique et l'absence de certifications professionnelles pertinentes
-        constituent des points faibles mineurs. Dans l'ensemble, le profil du
-        candidat correspond très bien aux exigences de l'offre d'emploi.
+        Explication : Le candidat est bien qualifié avec une solide expérience
+        et des compétences pertinentes, bien que quelques domaines nécessitent
+        des améliorations.
 
         CV : {resume}
         Description du poste : {job_advert}
@@ -96,30 +87,22 @@ class CoverLetterGenerator(ResumeAIStrategy):
         super().__init__()
 
     def generate(self, resume: str, job_advert: str) -> str:
-        prompt = """Générez une lettre de motivation professionnelle pour
-        le poste décrit ci-dessous, en vous basant sur le CV fourni.
+        prompt = """Générez une lettre de motivation professionnelle pour le
+        poste décrit ci-dessous, en vous basant sur le CV fourni. La lettre
+        doit inclure :
 
-        La lettre de motivation doit comprendre les sections suivantes :
-
-        1. Intro accrocheuse
-        2. Vos expériences et compétences pertinentes pour le poste, en vous
-        appuyant sur les informations du CV
-           - Utilisez uniquement des termes techniques spécifiques au domaine
-           présents dans la description du poste
-           - Donnez des exemples concrets de vos réalisations passées
-           mentionnées dans le CV ou non mais pertinent pouvant
-           augmenter la concordance.
+        1. Une introduction accrocheuse
+        2. Vos expériences et compétences pertinentes pour le poste, en
+           utilisant des termes techniques spécifiques et des exemples
+           concrets de réalisations
         3. Votre motivation pour le poste et l'entreprise
-        4. Conclusion avec appel à l'action
+        4. Une conclusion avec un appel à l'action
 
-        CV :
-        {resume}
+        CV : {resume}
+        Description du poste : {job_advert}
 
-        Description du poste :
-        {job_advert}
+        Réponse :"""
 
-        Réponse :
-        """
         prompt_template = PromptTemplate(
             template=prompt, input_variables=["resume", "job_advert"]
         )
@@ -133,49 +116,37 @@ class ResumeImprover(ResumeAIStrategy):
         super().__init__()
 
     def generate(self, resume: str, job_advert: str) -> str:
-        prompt = f"""Améliorez le CV ci-dessous en intégrant les compétences,
-        qualifications et expériences pertinentes à partir du CV fourni et
-        de l'annonce d'emploi. L'objectif est d'atteindre un score de
-        correspondance supérieur à 95%.
+        prompt = """Améliorez le CV ci-dessous en mettant en avant les
+        compétences, qualifications et expériences pertinentes pour
+        le poste. L'objectif est d'obtenir un score de correspondance
+        supérieur à 95%.
 
-        Résumé : Présentez brièvement le candidat en mettant en avant ses
-        principales forces et son adéquation avec le poste visé. Incorporez
-        des mots-clés et phrases clés de l'offre d'emploi. Utiliser la
-        première personne pour les conjugaisons.
+        Instructions :
+        - Résumé : Présentez brièvement le candidat en mettant en avant ses
+          forces principales et sa pertinence pour le poste, en utilisant
+          des mots-clés de l'offre.
+        - Compétences : Listez les compétences les plus pertinentes pour le
+          poste, en mettant en avant celles mentionnées dans l'offre d'emploi.
+        - Expérience professionnelle : Réorganisez et reformulez les
+          expériences pour souligner les réalisations pertinentes pour le
+          poste. Combinez les points si nécessaire.
+        - Formation et certifications : Mettez en avant les formations et
+          certifications pertinentes, ajoutant des informations manquantes
+          si nécessaire.
+        - Projets : Reformulez et mettez en avant les projets pertinents,
+          incluant des projets open source valorisants si nécessaire.
+        - Informations supplémentaires : Ajoutez toute information valorisante
+          comme les implications bénévoles, récompenses, publications, etc.
 
-        Compétences : Listez les compétences techniques et non techniques
-        les plus pertinentes pour le poste en mettant en évidence celles
-        mentionnées dans l'offre d'emploi. Classez-les par ordre d'importance.
+        Assurez-vous que les modifications sont professionnelles, concises
+        et positives. La structure du CV doit être cohérente et logique.
 
-        Expérience professionnelle : Réorganisez, combinez (max deux points)
-        et reformulez les expériences pour mettre en avant les réalisations
-        et responsabilités en lien avec le poste visé. Ajoutez des détails
-        pertinents tirés de l'expérience élargie du candidat si disponibles.
-
-        Formation et certifications : Mettez en avant les formations,
-        diplômes et certifications en adéquation avec les exigences de
-        l'offre d'emploi. Ajoutez toute information pertinente manquante.
-
-        Projets : Reformulez et mettez en avant les projets en adéquation
-        avec les exigences de l'offre d'emploi. Ajoutez des projets open
-        source supplémentaires valorisants pour le poste si nécessaire.
-
-        Informations supplémentaires : Ajoutez toute autre information
-        valorisante pour le poste, comme les implications bénévoles,
-        les récompenses, les publications, etc.
-
-        Assurez-vous que toutes les modifications sont professionnelles,
-        concises et positives. La structure du CV doit être cohérente
-        et logique.
-
-        Résumé : {resume}
-
+        CV : {resume}
         Offre d'emploi : {job_advert}
 
-        Contexte supplémentaire : Le candidat a une vaste expérience en
-        dehors de son historique d'emploi listé, qui pourrait être
-        pertinente selon les exigences du poste. Veuillez en tenir
-        compte lors des ajustements du CV.
+        Contexte supplémentaire : Le candidat a une vaste expérience non
+        listée qui pourrait être pertinente pour le poste. Veuillez en
+        tenir compte.
 
         Réponse :"""
 
@@ -230,40 +201,36 @@ class MailCompletion:
 
     def mailcompletion(self, resume: str) -> str:
         prompt = """Complétez le modèle de courrier électronique ci-dessous en
-        utilisant les informations contenues dans le CV fourni. Assurez-vous
-        de remplacer les parties entre crochets [] par les informations
-        pertinentes tirées du CV.
+        utilisant les informations du CV fourni. Remplacez les parties entre
+        crochets [] par les informations pertinentes du CV.
 
-        Format de sortie :
-
+        Format :
         Bonjour,
 
-        J'espère que vous allez bien ?
+        J'espère que vous allez bien.
 
-        Je me permets de vous proposer le profil de [Prénom du candidat],
-        [Intitulé du poste] de [Nombre] année(s) d'expérience qui pourrait
-        vivement intéresser votre équipe.
+        Je vous propose le profil de [Prénom du candidat], [Intitulé du poste]
+        avec [Nombre] année(s) d'expérience qui pourrait intéresser votre
+        équipe.
 
         Vous trouverez son dossier technique en pièce jointe.
 
         En quelques mots :
-        - Technologies & Langages : [Liste des technologies et langages
-        de programmation]
+        - Technologies & Langages : [Liste des technologies et langages de
+          programmation]
         - Compétences métiers : [Liste des compétences métiers pertinentes]
         - Dernier client : [Nom de l'entreprise de la dernière expérience]
-        - Disponibilité : [Date de disponibilité s'il exsit sinon
-        Immédiatement]
+        - Disponibilité : [Date de disponibilité ou Immédiatement]
 
-        Qu'en pensez-vous ? Je reste à votre disposition si le profil de
-        [Prénom du candidat] est susceptible d'intéresser votre équipe ou
-        celle de vos collègues.
+        Qu'en pensez-vous ? Je reste à votre disposition pour toute
+        information complémentaire.
 
-        Excellente journée à vous,
+        Excellente journée,
 
         CV : {resume}
 
-        Réponse :
-        """
+        Réponse :"""
+
         prompt_template = PromptTemplate(template=prompt,
                                          input_variables=["resume"])
         chain = prompt_template | self.llm
