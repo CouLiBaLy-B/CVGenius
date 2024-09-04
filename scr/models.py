@@ -6,8 +6,12 @@ import streamlit as st
 from scr.utils import ModelError
 from abc import ABC, abstractmethod
 
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
-HUGGINGFACE_HUB_API_TOKEN = st.secrets["HUGGINGFACE_HUB_API_TOKEN"]
+
+HUGGINGFACE_HUB_API_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 
 
 class ResumeAIStrategy(ABC):
