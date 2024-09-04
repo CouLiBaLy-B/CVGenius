@@ -16,3 +16,13 @@ scr/documentation.py
 scr/logs.py
 scr/models.py
 scr/utils.py
+tests/test_app.py
+tests/test_models.py
+tests/test_utils.py
+ui/__init__.py
+ui/home/__init__.py
+ui/home/render_home.py
+ui/infos/__init__.py
+ui/infos/render_infos.py
+ui/navigation/__init__.py
+ui/navigation/render_navigation.py

@@ -13,4 +13,9 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.7
 Requires-Python: >=3.7
+Requires-Dist: pytest
+Requires-Dist: pyyaml
 Provides-Extra: dev
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: black; extra == "dev"
