@@ -19,7 +19,7 @@ class ResumeAIStrategy(ABC):
 
     def __init__(self):
         self.llm = HuggingFaceEndpoint(
-            repo_id="mistralai/MixTraL-8x7B-Instruct-v0.1",
+            repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
             temperature=0.001,
             repetition_penalty=1.2,
             max_length=10000,
