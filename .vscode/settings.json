@@ -1,5 +1,8 @@
 {
     "DockerRun.DisableAutoGenerateConfig": true,
     "taipyStudio.gUI.elementsFilePaths": [],
-    "CodeGPT.apiKey": "CodeGPT Plus Beta"
+    "CodeGPT.apiKey": "CodeGPT Plus Beta",
+    "flake8.args": [
+        "--max-line-length=120"
+    ]
 }
