@@ -9,6 +9,25 @@ from scr.documentation import documentations
 
 
 def main(run_setup=True, test_mode=False):
+    """
+    Main entry point of the application.
+
+    This function will run the Streamlit setup configuration, authenticate the user
+    and then run the application based on the user's choice from the navigation menu.
+
+    Parameters
+    ----------
+    run_setup : bool, optional
+        Whether to run the Streamlit setup configuration, by default True
+    test_mode : bool, optional
+        Whether to run the application in test mode, by default False
+
+    Returns
+    -------
+    bool
+        Whether the user was authenticated if in test mode
+    """
+
     if run_setup:
         setup_page_config()
 

@@ -2,10 +2,8 @@ from langchain_huggingface.llms import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 
 from requests.exceptions import HTTPError
-import streamlit as st
 from scr.utils import ModelError
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from dotenv import load_dotenv
 import os
@@ -18,6 +16,14 @@ HUGGINGFACE_HUB_API_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 class ResumeAIStrategy(ABC):
 
     def __init__(self):
+        """
+        Initializes the ResumeAIStrategy class with a HuggingFaceEndpoint.
+
+        This constructor sets up a connection to the Hugging Face API using the specified model
+        repository. It configures the endpoint with parameters such as temperature, repetition penalty,
+        max length, max new tokens, and adds the Hugging Face Hub API token for authentication.
+        """
+
         self.llm = HuggingFaceEndpoint(
             repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
             temperature=0.001,
@@ -30,16 +36,56 @@ class ResumeAIStrategy(ABC):
 
     @abstractmethod
     def generate(self, resume: str, job_advert: str) -> str:
+        """
+        Abstract method to be implemented by all concrete strategies.
+
+        This method should generate a document based on the given resume and job advert.
+        The generated document should be a string that represents the output of the strategy.
+
+        Parameters
+        ----------
+        resume : str
+            The resume of the candidate.
+        job_advert : str
+            The job advert of the position.
+
+        Returns
+        -------
+        str
+            The generated document.
+        """
         pass
 
 
 class ScoreResumeJob(ResumeAIStrategy):
     def __init__(self):
+        """
+        Initializes the ScoreResumeJob class by calling the superclass initializer.
+
+        This constructor sets up the ScoreResumeJob strategy, which evaluates
+        the match between a candidate's resume and a job description.
+        """
+
         super().__init__()
 
     def generate(self, resume: str, job_advert: str) -> str:
+        """
+        Evaluates the match between a candidate's resume and a job description by attributing a score on 100.
+
+        Parameters
+        ----------
+        resume : str
+            The resume of the candidate.
+        job_advert : str
+            The job advert of the position.
+
+        Returns
+        -------
+        str
+            The generated document.
+        """
         prompt = """
-        Évaluez la correspondance entre le CV d'un candidat et la description du poste en attribuant un score sur 100. 
+        Évaluez la correspondance entre le CV d'un candidat et la description du poste en attribuant un score sur 100.
         Tenez compte des éléments suivants par ordre d'importance :
         1. Dernière expérience professionnelle et sa durée
         2. Deuxième expérience professionnelle et sa durée
@@ -49,7 +95,8 @@ class ScoreResumeJob(ResumeAIStrategy):
         6. Projets réalisés
         7. Engagement dans des actions humanitaires (optionel)
 
-        Notez que la maîtrise d'un langage de programmation implique la connaissance des librairies et frameworks associés. 
+        Notez que la maîtrise d'un langage de programmation implique la connaissance des librairies et frameworks
+        associés.
         Répondez au format suivant :
 
         - Score de correspondance : [Score sur 100]
@@ -68,7 +115,8 @@ class ScoreResumeJob(ResumeAIStrategy):
         - Manque d'expérience avec un outil spécifique
         - Absence de certifications professionnelles
 
-        Explication : Le candidat est bien qualifié avec une solide expérience et des compétences pertinentes, bien que quelques domaines nécessitent des améliorations.
+        Explication : Le candidat est bien qualifié avec une solide expérience et des compétences pertinentes, bien que
+        quelques domaines nécessitent des améliorations.
 
         CV : {resume}
         Description du poste : {job_advert}
@@ -82,11 +130,18 @@ class ScoreResumeJob(ResumeAIStrategy):
 
 class CoverLetterGenerator(ResumeAIStrategy):
     def __init__(self):
+        """
+        Initializes the CoverLetterGenerator class by calling the superclass initializer.
+        This constructor sets up the CoverLetterGenerator strategy, which generates
+        a professional cover letter based on the given resume and job advert.
+        """
+
         super().__init__()
 
     def generate(self, resume: str, job_advert: str) -> str:
         prompt = """
-        Générez une lettre de motivation professionnelle pour le poste décrit ci-dessous, en vous basant sur le CV fourni. 
+        Générez une lettre de motivation professionnelle pour le poste décrit ci-dessous, en vous basant sur le CV
+        fourni.
         La lettre doit inclure les éléments suivants :
 
         1. Introduction accrocheuse :
@@ -118,18 +173,32 @@ class CoverLetterGenerator(ResumeAIStrategy):
 
 class ResumeImprover(ResumeAIStrategy):
     def __init__(self):
+        """Initializes the ResumeImprover class by calling the superclass initializer.
+
+        This constructor sets up the ResumeImprover strategy, which improves
+        a resume by highlighting the skills, qualifications and experiences
+        relevant to a given job advert. It attempts to obtain a score of
+        95% or higher. The generated resume includes a summary, skills
+        and professional experience sections."""
         super().__init__()
 
     def generate(self, resume: str, job_advert: str) -> str:
         prompt = """
-        Améliorez le CV ci-dessous en mettant en avant les compétences, qualifications et expériences pertinentes pour le poste. 
+        Améliorez le CV ci-dessous en mettant en avant les compétences, qualifications et expériences pertinentes
+        pour le poste.
         L'objectif est d'obtenir un score de correspondance supérieur à 95%.
-        - Résumé : Présentez brièvement le candidat en mettant en avant ses forces principales et sa pertinence pour le poste, en utilisant des mots-clés de l'offre.
-        - Compétences : Listez les compétences les plus pertinentes pour le poste, en mettant en avant celles mentionnées dans l'offre d'emploi.
-        - Expérience professionnelle : Réorganisez et reformulez les expériences pour souligner les réalisations pertinentes pour le poste. Combinez les points si nécessaire.
-        - Formation et certifications : Mettez en avant les formations et certifications pertinentes, ajoutant des informations manquantes si nécessaire.
-        - Projets : Reformulez et mettez en avant les projets pertinents, incluant des projets open source valorisants si nécessaire.
-        - Informations supplémentaires : Ajoutez toute information valorisante comme les implications bénévoles, récompenses, publications, etc.
+        - Résumé : Présentez brièvement le candidat en mettant en avant ses forces principales et sa pertinence pour
+        le poste, en utilisant des mots-clés de l'offre.
+        - Compétences : Listez les compétences les plus pertinentes pour le poste, en mettant en avant celles
+        mentionnées dans l'offre d'emploi.
+        - Expérience professionnelle : Réorganisez et reformulez les expériences pour souligner les réalisations
+        pertinentes pour le poste. Combinez les points si nécessaire.
+        - Formation et certifications : Mettez en avant les formations et certifications pertinentes, ajoutant des
+        informations manquantes si nécessaire.
+        - Projets : Reformulez et mettez en avant les projets pertinents, incluant des projets open source valorisants
+        si nécessaire.
+        - Informations supplémentaires : Ajoutez toute information valorisante comme les implications bénévoles,
+        récompenses, publications, etc.
 
         CV : {resume}
         Offre d'emploi : {job_advert}
@@ -148,6 +217,17 @@ class ResumeGenerator:
         self.resumeStrategy = resumeStrategy
 
     def generator(self) -> str:
+        """
+        Génère un document en fonction de la stratégie de modèle AI fournie.
+
+        Renvoie le document généré en tant que chaîne de caractères. Si une erreur se produit, renvoie un
+        message d'erreur détaillé.
+
+        Returns
+        -------
+        str
+            Le document généré ou un message d'erreur si une exception s'est produite.
+        """
         try:
             generated_text = self.resumeStrategy.generate(resume=self.resume, job_advert=self.job_advert)
             return generated_text
@@ -175,13 +255,19 @@ class MailCompletion:
         )
 
     def mailcompletion(self, resume: str) -> str:
+        """
+        Complétez le modèle de courrier électronique ci-dessous en utilisant les informations du CV fourni.
+        Remplacez les parties entre crochets [] par les informations pertinentes du CV.
+        """
         prompt = """
-        Complétez le modèle de courrier électronique ci-dessous en utilisant les informations du CV fourni. Remplacez les parties entre crochets [] par les informations pertinentes du CV.
+        Complétez le modèle de courrier électronique ci-dessous en utilisant les informations du CV fourni. Remplacez
+        les parties entre crochets [] par les informations pertinentes du CV.
 
         Format :
         Bonjour,
         J'espère que vous allez bien.
-        Je vous propose le profil de [Prénom du candidat], [Intitulé du poste] avec [Nombre] année(s) d'expérience qui pourrait intéresser votre équipe.
+        Je vous propose le profil de [Prénom du candidat], [Intitulé du poste] avec [Nombre] année(s) d'expérience qui
+        pourrait intéresser votre équipe.
         Vous trouverez son dossier technique en pièce jointe.
 
         En quelques mots :

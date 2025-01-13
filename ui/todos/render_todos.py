@@ -2,6 +2,19 @@ import streamlit as st
 
 
 def render_todos():
+    """
+    Renders the page with the list of TODO items for the application.
+
+    The page is divided into three sections: "Fonctionnalités supplémentaires",
+    "Améliorations de l'interface utilisateur", and "Intégrations supplémentaires".
+    Each section contains a list of items with a brief description of the
+    feature or improvement to be implemented.
+
+    The page also includes a section for "Améliorations de performance" which
+    lists improvements to the performance of the application.
+
+    :return: None
+    """
     st.markdown("<div class='title'>Améliorations futures</div>",
                 unsafe_allow_html=True)
 

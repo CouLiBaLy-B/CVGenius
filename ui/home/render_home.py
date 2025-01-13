@@ -7,11 +7,27 @@ from scr.models import (
     CoverLetterGenerator,
     ResumeImprover,
     ResumeGenerator,
-    MailCompletion
+    MailCompletion,
 )
 
 
 def render_home():
+    """
+    Renders the options for CV and job offer related tasks or for mail completion.
+
+    This function renders a navigation bar with the following options:
+
+    - CV et offre d'emploi
+    - Completion de mail
+
+    The selected option is stored in the `cv_mail_option` variable.
+
+    If the user selects "CV et offre d'emploi", the `render_cv_job_offer_options` function will be called.
+
+    If the user selects "Completion de mail", the `render_mail_completion` function will be called.
+
+    :return: None
+    """
     option_data = [
         {"icon": "📝", "label": "CV et offre d'emploi"},
         {"icon": "📧", "label": "Completion de mail"},
@@ -21,9 +37,7 @@ def render_home():
         title="Que voulez-vous faire ?",
         key="PrimaryOption_",
         override_theme=get_over_theme(),
-        font_styling={"font-class": "h1",
-                      "font-size": "100%",
-                      "color": "black"},
+        font_styling={"font-class": "h1", "font-size": "100%", "color": "black"},
         horizontal_orientation=True,
     )
 
@@ -34,6 +48,28 @@ def render_home():
 
 
 def render_cv_job_offer_options():
+    """
+    Renders the options for CV and job offer related tasks.
+
+    This function renders a navigation bar with the following options:
+
+    - Score de correspondance
+    - Rédaction de lettre de motivation
+    - Amélioration de CV
+
+    The selected option is stored in the `task` variable.
+
+    Additionally, this function renders a file uploader for the user's CV and
+    a text area for the job description. The user must upload a PDF file and
+    fill in the job description before the task can be launched.
+
+    If the user has not uploaded a PDF file or has not filled in the job
+    description, an error message will be displayed.
+
+    If the user clicks the "Lancer" button, the `process_cv_job_offer` function
+    will be called with the selected task, the uploaded PDF file and the job
+    description as arguments.
+    """
     option_data = [
         {"label": "Score de correspondance"},
         {"label": "Rédaction de lettre de motivation"},
@@ -50,20 +86,39 @@ def render_cv_job_offer_options():
     )
 
     resume_pdf = st.file_uploader("Importez votre CV en pdf", type="pdf")
-    job_advert = st.text_area("L'offre de poste",
-                              value="", height=400, key="offre")
+    job_advert = st.text_area("L'offre de poste", value="", height=400, key="offre")
 
     if resume_pdf is None:
         st.error("Veuillez importer votre CV avant de continuer.")
     elif job_advert == "":
-        st.error("""Veuillez saisir une description de poste
-                 avant de continuer.""")
+        st.error(
+            """Veuillez saisir une description de poste
+            avant de continuer."""
+        )
     else:
         if st.button("Lancer"):
             process_cv_job_offer(task, resume_pdf, job_advert)
 
 
 def process_cv_job_offer(task, resume_pdf, job_advert):
+    """
+    Process the selected task with the given resume and job advert.
+
+    Parameters
+    ----------
+    task : str
+        The selected task to perform, either "Score de correspondance", "Rédaction de lettre de motivation" or
+        "Amélioration de CV".
+    resume_pdf : bytes
+        The resume of the candidate, as a PDF file.
+    job_advert : str
+        The job advert of the position.
+
+    Returns
+    -------
+    None
+    """
+    
     with st.spinner("Traitement en cours..."):
         resume = extract_text_from_pdf(resume_pdf)
         if task == "Score de correspondance":
@@ -73,9 +128,9 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
         elif task == "Amélioration de CV":
             strategy = ResumeImprover()
 
-        generator = ResumeGenerator(resume=resume,
-                                    job_advert=job_advert,
-                                    resumeStrategy=strategy)
+        generator = ResumeGenerator(
+            resume=resume, job_advert=job_advert, resumeStrategy=strategy
+        )
         generated = generator.generator()
 
         st.markdown(generated, unsafe_allow_html=True)
@@ -83,20 +138,29 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
         st.download_button(
             label=f"""Télécharger le
             {'résultat' if task == 'Score de correspondance'
-             else 'document'}""",
+            else 'document'}""",
             data=pdf_output.getvalue(),
             file_name=f"""{'matching_score'
-                           if task == 'Score de correspondance'
-                           else 'document'}.pdf""",
+                        if task == 'Score de correspondance'
+                        else 'document'}.pdf""",
             mime="application/pdf",
         )
     st.success("Terminé !")
 
 
 def render_mail_completion():
-    resume_pdf = st.file_uploader(
-            "Import ton CV en pdf", type="pdf", key="mail_resume"
-    )
+    """
+    Displays a file uploader to import a resume in PDF format and
+    a button to generate a mail completion.
+
+    If the button is clicked, it will use the MailCompletion class to generate
+    a mail completion and display it in a text area. It will also generate a PDF
+    file from the text and allow the user to download it.
+
+    If an error occurs during the generation of the mail completion, it will
+    display an error message with the exception message.
+    """
+    resume_pdf = st.file_uploader("Import ton CV en pdf", type="pdf", key="mail_resume")
     if resume_pdf is not None:
         try:
             if st.button("Lancer", key="mail"):

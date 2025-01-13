@@ -4,6 +4,14 @@ import os
 
 
 def setup_page_config():
+    """
+    Setup Streamlit page configuration.
+
+    This function sets the page title, icon, sidebar state and layout. It also
+    adds custom CSS styles to the page.
+
+    :return: None
+    """
     logo_path = os.path.join(os.getcwd(), "images", "logo.png")
     logo = Image.open(logo_path)
 
@@ -36,6 +44,14 @@ def setup_page_config():
 
 
 def get_over_theme():
+    """
+    Return a dictionary containing the theme colors for the navigation bar.
+
+    The theme is overridden using the `override_theme` parameter of the
+    `nav_bar` function from the `hydralit_components` library.
+
+    :return: A dictionary of theme colors.
+    """
     return {
         "txc_inactive": "#FFFFFF",
         "color": "#FF6300",
@@ -47,6 +63,17 @@ def get_over_theme():
 
 
 def get_menu_data():
+    """
+    Retrieve the menu data for the application.
+
+    This function provides a list of dictionaries, each representing a menu item
+    with its associated icon and label. The menu items are used to render the
+    navigation bar in the application.
+
+    Returns:
+        list: A list of dictionaries, each containing an 'id', 'icon', and 'label' key.
+    """
+
     return [
         {"id": "Infos", "icon": "💡", "label": "Infos"},
         {"icon": "🚀", "label": "To Do's"},

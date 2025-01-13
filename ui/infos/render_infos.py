@@ -2,6 +2,15 @@ import streamlit as st
 
 
 def render_infos():
+    """
+    Renders information about the application.
+
+    This function displays various sections on a Streamlit page, including
+    details about the AI model used by the application, the MixTraL-8x7B-Instruct-v0.1
+    by MistralAI, and the tasks performed by the application, such as scoring 
+    resume-job offer compatibility, generating cover letters, and improving resumes.
+    """
+
     st.markdown("<div class='title'>À propos de cette application</div>",
                 unsafe_allow_html=True)
     st.markdown(
