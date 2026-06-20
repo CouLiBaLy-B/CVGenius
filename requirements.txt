@@ -10,3 +10,4 @@ hydralit==1.0.14
 python-dotenv
 werkzeug==3.0.3
 streamlit-authenticator==0.3.2
+pydantic>=2.6,<3.0

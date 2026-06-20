@@ -3,6 +3,7 @@ from langchain_core.prompts import PromptTemplate
 
 from requests.exceptions import HTTPError
 from scr.utils import ModelError
+from scr.scoring import LangChainLLM, MultiCriteriaScoringEngine
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
@@ -11,6 +12,36 @@ load_dotenv()
 
 
 HUGGINGFACE_HUB_API_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
+
+
+def create_scoring_engine(use_llm: bool = False) -> MultiCriteriaScoringEngine:
+    """Construit le moteur de scoring multi-critères de l'application.
+
+    Le moteur fonctionne par défaut en mode purement déterministe
+    (reproductible et sans appel réseau). Lorsque ``use_llm`` est activé et
+    qu'un jeton Hugging Face est disponible, une évaluation qualitative LLM est
+    ajoutée à l'agrégation.
+
+    Parameters
+    ----------
+    use_llm : bool, optional
+        Active l'évaluation qualitative par LLM, par défaut ``False``.
+
+    Returns
+    -------
+    MultiCriteriaScoringEngine
+        Le moteur configuré, prêt à scorer un couple CV/offre.
+    """
+    if use_llm and HUGGINGFACE_HUB_API_TOKEN:
+        llm = HuggingFaceEndpoint(
+            repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            temperature=0.001,
+            repetition_penalty=1.2,
+            max_new_tokens=1000,
+            huggingfacehub_api_token=HUGGINGFACE_HUB_API_TOKEN,
+        )
+        return MultiCriteriaScoringEngine(language_model=LangChainLLM(llm))
+    return MultiCriteriaScoringEngine()
 
 
 class ResumeAIStrategy(ABC):

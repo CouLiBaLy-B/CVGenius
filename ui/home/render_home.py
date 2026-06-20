@@ -2,13 +2,16 @@ import streamlit as st
 import hydralit_components as hc
 from configuration.config import get_over_theme
 from scr.utils import extract_text_from_pdf, generate_pdf
+from scr.scoring import MatchScore, to_markdown
 from scr.models import (
-    ScoreResumeJob,
+    create_scoring_engine,
     CoverLetterGenerator,
     ResumeImprover,
     ResumeGenerator,
     MailCompletion,
 )
+
+SCORE_TASK = "Score de correspondance"
 
 
 def render_home():
@@ -71,7 +74,7 @@ def render_cv_job_offer_options():
     description as arguments.
     """
     option_data = [
-        {"label": "Score de correspondance"},
+        {"label": SCORE_TASK},
         {"label": "Rédaction de lettre de motivation"},
         {"label": "Amélioration de CV"},
     ]
@@ -88,6 +91,17 @@ def render_cv_job_offer_options():
     resume_pdf = st.file_uploader("Importez votre CV en pdf", type="pdf")
     job_advert = st.text_area("L'offre de poste", value="", height=400, key="offre")
 
+    use_llm = False
+    if task == SCORE_TASK:
+        use_llm = st.checkbox(
+            "Ajouter une analyse qualitative par IA (plus lente, nécessite un jeton)",
+            value=False,
+            help=(
+                "Le scoring multi-critères fonctionne sans IA. Cette option ajoute "
+                "une évaluation qualitative du parcours et des soft skills."
+            ),
+        )
+
     if resume_pdf is None:
         st.error("Veuillez importer votre CV avant de continuer.")
     elif job_advert == "":
@@ -97,10 +111,10 @@ def render_cv_job_offer_options():
         )
     else:
         if st.button("Lancer"):
-            process_cv_job_offer(task, resume_pdf, job_advert)
+            process_cv_job_offer(task, resume_pdf, job_advert, use_llm=use_llm)
 
 
-def process_cv_job_offer(task, resume_pdf, job_advert):
+def process_cv_job_offer(task, resume_pdf, job_advert, use_llm=False):
     """
     Process the selected task with the given resume and job advert.
 
@@ -113,21 +127,26 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
         The resume of the candidate, as a PDF file.
     job_advert : str
         The job advert of the position.
+    use_llm : bool, optional
+        Whether to enrich the matching score with an LLM qualitative analysis,
+        by default ``False``. Only relevant for the scoring task.
 
     Returns
     -------
     None
     """
-    
     with st.spinner("Traitement en cours..."):
         resume = extract_text_from_pdf(resume_pdf)
-        if task == "Score de correspondance":
-            strategy = ScoreResumeJob()
-        elif task == "Rédaction de lettre de motivation":
-            strategy = CoverLetterGenerator()
-        elif task == "Amélioration de CV":
-            strategy = ResumeImprover()
 
+        if task == SCORE_TASK:
+            process_match_score(resume, job_advert, use_llm=use_llm)
+            return
+
+        strategy = (
+            CoverLetterGenerator()
+            if task == "Rédaction de lettre de motivation"
+            else ResumeImprover()
+        )
         generator = ResumeGenerator(
             resume=resume, job_advert=job_advert, resumeStrategy=strategy
         )
@@ -136,16 +155,95 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
         st.markdown(generated, unsafe_allow_html=True)
         pdf_output = generate_pdf(generated)
         st.download_button(
-            label=f"""Télécharger le
-            {'résultat' if task == 'Score de correspondance'
-            else 'document'}""",
+            label="Télécharger le document",
             data=pdf_output.getvalue(),
-            file_name=f"""{'matching_score'
-                        if task == 'Score de correspondance'
-                        else 'document'}.pdf""",
+            file_name="document.pdf",
             mime="application/pdf",
         )
     st.success("Terminé !")
+
+
+def process_match_score(resume, job_advert, use_llm=False):
+    """
+    Run the multi-criteria scoring engine and render its detailed result.
+
+    Parameters
+    ----------
+    resume : str
+        The extracted text of the candidate's resume.
+    job_advert : str
+        The job advert of the position.
+    use_llm : bool, optional
+        Whether to add the LLM qualitative criterion, by default ``False``.
+
+    Returns
+    -------
+    None
+    """
+    try:
+        engine = create_scoring_engine(use_llm=use_llm)
+        match = engine.score(resume, job_advert)
+    except ValueError as exc:
+        st.error(str(exc))
+        return
+    except Exception as exc:  # noqa: BLE001 - surfacing toute erreur à l'UI
+        st.error(f"Une erreur est survenue pendant le scoring : {exc}")
+        return
+
+    render_match_score(match)
+    pdf_output = generate_pdf(to_markdown(match))
+    st.download_button(
+        label="Télécharger le rapport de scoring",
+        data=pdf_output.getvalue(),
+        file_name="rapport_scoring.pdf",
+        mime="application/pdf",
+    )
+    st.success("Terminé !")
+
+
+def render_match_score(match: MatchScore):
+    """
+    Render a :class:`MatchScore` with global score, per-criterion gauges and
+    highlights.
+
+    Parameters
+    ----------
+    match : MatchScore
+        The aggregated multi-criteria scoring result.
+
+    Returns
+    -------
+    None
+    """
+    st.metric(
+        label=f"Score global — {match.band_label}",
+        value=f"{match.global_score:.0f}/100",
+    )
+    st.progress(min(1.0, match.global_score / 100.0))
+    st.info(match.recommendation)
+
+    st.subheader("Détail par critère")
+    for criterion in match.criteria:
+        st.markdown(
+            f"**{criterion.label}** — {criterion.score:.0f}/100 "
+            f"*(poids {criterion.weight * 100:.0f}%)*"
+        )
+        st.progress(min(1.0, criterion.score / 100.0))
+        with st.expander("Justification"):
+            if criterion.rationale:
+                st.write(criterion.rationale)
+            for item in criterion.evidence:
+                st.markdown(f"- {item}")
+
+    col_strengths, col_weaknesses = st.columns(2)
+    with col_strengths:
+        st.subheader("Points forts")
+        for item in match.strengths or ["Aucun point fort marquant."]:
+            st.markdown(f"- {item}")
+    with col_weaknesses:
+        st.subheader("Points de vigilance")
+        for item in match.weaknesses or ["Aucun point de vigilance majeur."]:
+            st.markdown(f"- {item}")
 
 
 def render_mail_completion():

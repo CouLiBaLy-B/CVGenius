@@ -19,10 +19,43 @@ CV Genius est une application web Streamlit utilisant l'IA pour assister les uti
 
 ## Fonctionnalités
 
-- Scoring CV/Offre d'emploi
+- **Scoring CV/Offre d'emploi multi-critères** (voir ci-dessous)
 - Génération de lettre de motivation
 - Amélioration de CV
 - Complétion de mail
+
+## Moteur de scoring multi-critères
+
+Le scoring repose sur un moteur hybride (`scr/scoring`) qui agrège plusieurs
+sous-scores pondérés en un score global explicable, plutôt que sur un unique
+appel LLM en texte libre :
+
+| Critère | Méthode | Description |
+| --- | --- | --- |
+| Compétences | Déterministe (ATS) | Couverture des mots-clés exigés par l'offre |
+| Similarité sémantique | Déterministe (TF-IDF) | Recouvrement global CV / offre |
+| Expérience | Déterministe | Ancienneté détectée vs. exigence de l'offre |
+| Séniorité | Déterministe | Alignement des marqueurs de niveau |
+| Formation | Déterministe | Diplômes et certifications |
+| Qualitatif | LLM (optionnel) | Soft skills, cohérence du parcours |
+
+Caractéristiques :
+
+- **Reproductible et sans réseau** par défaut (mode déterministe).
+- **Explicable** : score par critère, justification, points forts/faibles.
+- **Extensible** : le calculateur de similarité (`SimilarityProvider`) et le
+  LLM (`LanguageModel`) sont injectables (embeddings, autres modèles...).
+- **Pondération configurable** via `ScoringWeights` (renormalisée à somme 1).
+
+Exemple :
+
+```python
+from scr.scoring import MultiCriteriaScoringEngine
+
+engine = MultiCriteriaScoringEngine()
+result = engine.score(resume_text, job_advert_text)
+print(result.global_score, result.band_label)
+```
 
 ## Prérequis
 
