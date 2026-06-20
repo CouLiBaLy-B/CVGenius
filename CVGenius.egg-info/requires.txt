@@ -1,7 +1,0 @@
-pytest
-pyyaml
-
-[dev]
-pytest-cov
-flake8
-black

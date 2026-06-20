@@ -1,2 +1,7 @@
 .secrets/secrets.toml
 .venv
+
+# Artefacts Python
+__pycache__/
+*.py[cod]
+*.egg-info/
