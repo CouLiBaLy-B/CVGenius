@@ -2,12 +2,26 @@ import streamlit as st
 import hydralit_components as hc
 from configuration.config import get_over_theme
 from scr.utils import extract_text_from_pdf, generate_pdf
+from scr.logs import log_action, log_error
 from scr.models import (
     ScoreResumeJob,
     CoverLetterGenerator,
     ResumeImprover,
     ResumeGenerator,
     MailCompletion,
+)
+
+TASK_STRATEGIES = {
+    "Score de correspondance": ScoreResumeJob,
+    "Rédaction de lettre de motivation": CoverLetterGenerator,
+    "Amélioration de CV": ResumeImprover,
+}
+
+CONSENT_NOTICE = (
+    "Le CV importé (données personnelles du candidat) est transmis à un "
+    "prestataire d'IA tiers (Hugging Face / Mistral) pour traitement. Il "
+    "n'est conservé ni sur le serveur ni après la fin de votre session. "
+    "Assurez-vous d'être autorisé à traiter ce document."
 )
 
 
@@ -87,6 +101,7 @@ def render_cv_job_offer_options():
 
     resume_pdf = st.file_uploader("Importez votre CV en pdf", type="pdf")
     job_advert = st.text_area("L'offre de poste", value="", height=400, key="offre")
+    consent = st.checkbox(CONSENT_NOTICE, key="consent_cv_job_offer")
 
     if resume_pdf is None:
         st.error("Veuillez importer votre CV avant de continuer.")
@@ -95,6 +110,10 @@ def render_cv_job_offer_options():
             """Veuillez saisir une description de poste
             avant de continuer."""
         )
+    elif task not in TASK_STRATEGIES:
+        st.error("Veuillez sélectionner une tâche avant de continuer.")
+    elif not consent:
+        st.warning("Veuillez confirmer avoir pris connaissance de la mention ci-dessus avant de continuer.")
     else:
         if st.button("Lancer"):
             process_cv_job_offer(task, resume_pdf, job_advert)
@@ -118,15 +137,16 @@ def process_cv_job_offer(task, resume_pdf, job_advert):
     -------
     None
     """
-    
     with st.spinner("Traitement en cours..."):
-        resume = extract_text_from_pdf(resume_pdf)
-        if task == "Score de correspondance":
-            strategy = ScoreResumeJob()
-        elif task == "Rédaction de lettre de motivation":
-            strategy = CoverLetterGenerator()
-        elif task == "Amélioration de CV":
-            strategy = ResumeImprover()
+        try:
+            resume = extract_text_from_pdf(resume_pdf)
+        except Exception as e:
+            log_error("pdf_extraction_failed", e)
+            st.error("Impossible de lire ce fichier PDF. Vérifiez qu'il n'est pas corrompu ou protégé.")
+            return
+
+        strategy = TASK_STRATEGIES[task]()
+        log_action(f"process_cv:{task}")
 
         generator = ResumeGenerator(
             resume=resume, job_advert=job_advert, resumeStrategy=strategy
@@ -161,11 +181,16 @@ def render_mail_completion():
     display an error message with the exception message.
     """
     resume_pdf = st.file_uploader("Import ton CV en pdf", type="pdf", key="mail_resume")
+    consent = st.checkbox(CONSENT_NOTICE, key="consent_mail_completion")
     if resume_pdf is not None:
+        if not consent:
+            st.warning("Veuillez confirmer avoir pris connaissance de la mention ci-dessus avant de continuer.")
+            return
         try:
             if st.button("Lancer", key="mail"):
                 with st.spinner("Wait for it..."):
                     resume = extract_text_from_pdf(resume_pdf)
+                    log_action("mail_completion")
                     generator = MailCompletion()
                     mail_complet = generator.mailcompletion(resume=resume)
                     st.write(mail_complet)
@@ -178,4 +203,5 @@ def render_mail_completion():
                     )
                 st.success("Done!")
         except Exception as e:
-            st.exception(f"Erreur {e}")
+            log_error("mail_completion_failed", e)
+            st.error("Une erreur s'est produite lors de la génération du mail. Veuillez réessayer plus tard.")

@@ -53,6 +53,32 @@ def mock_authenticate_user():
         yield mock
 
 
+@pytest.fixture
+def mock_render_admin():
+    with patch('app.render_admin') as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_is_admin():
+    with patch('app.is_admin') as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_app_render_navigation():
+    # Patched where app.py actually calls it (app.py imports the name directly,
+    # so patching the origin module in ui.navigation would not intercept the call).
+    with patch('app.render_navigation') as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_app_documentations():
+    with patch('app.documentations') as mock:
+        yield mock
+
+
 def test_main_authenticated(
         mock_st,
         mock_authenticate_user,
@@ -92,3 +118,39 @@ def test_main_not_authenticated(
     mock_authenticate_user.assert_called_once()
     mock_documentations.assert_not_called()
     mock_st.error.assert_not_called()
+
+
+def test_admin_page_blocked_for_non_admin(
+        mock_st,
+        mock_authenticate_user,
+        mock_app_render_navigation,
+        mock_app_documentations,
+        mock_render_admin,
+        mock_is_admin,
+        mock_setup_page_config,
+):
+    mock_authenticate_user.return_value = True
+    mock_app_render_navigation.return_value = "Admin"
+    mock_is_admin.return_value = False
+
+    main(run_setup=False, test_mode=False)
+
+    mock_render_admin.assert_not_called()
+
+
+def test_admin_page_rendered_for_admin(
+        mock_st,
+        mock_authenticate_user,
+        mock_app_render_navigation,
+        mock_app_documentations,
+        mock_render_admin,
+        mock_is_admin,
+        mock_setup_page_config,
+):
+    mock_authenticate_user.return_value = True
+    mock_app_render_navigation.return_value = "Admin"
+    mock_is_admin.return_value = True
+
+    main(run_setup=False, test_mode=False)
+
+    mock_render_admin.assert_called_once()
