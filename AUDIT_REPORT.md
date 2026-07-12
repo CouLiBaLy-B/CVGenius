@@ -47,18 +47,20 @@ Un jeton d'API Hugging Face réel et des identifiants `admin`/`admin` étaient c
 - Ajout de `pip-audit` (non bloquant pour l'instant, voir section suivante).
 - Ajout de Dependabot (pip + GitHub Actions) pour les mises à jour de sécurité.
 
-## 2. Constat majeur non corrigé : `hydralit` / `hydralit_components` cassent à l'installation
+## 2. `hydralit` / `hydralit_components` retirés (suite à validation)
 
-En testant `pip install -r requirements.txt` dans un environnement neuf (setuptools moderne, comme cela arriverait sur un conteneur de build fraîchement provisionné), **l'installation échoue** :
+`pip install -r requirements.txt` dans un environnement neuf (setuptools moderne, comme sur un conteneur de build fraîchement provisionné) **échouait** :
 
 ```
 AttributeError: install_layout. Did you mean: 'install_platlib'?
 ERROR: Failed building wheel for hydralit_components
 ```
 
-`hydralit`/`hydralit_components` n'ont pas été mis à jour depuis des années et utilisent un mécanisme de build (`distutils`) incompatible avec les versions récentes de `setuptools`. Contournement vérifié : figer `setuptools==59.8.0` avant l'installation — mais ce n'est pas un levier que vous contrôlez sur Streamlit Cloud/HF Spaces, donc un redéploiement peut échouer du jour au lendemain selon l'image de build utilisée par la plateforme.
+`hydralit`/`hydralit_components` n'étaient plus maintenus et utilisaient un mécanisme de build (`distutils`) incompatible avec les versions récentes de `setuptools` — un redéploiement futur sur Streamlit Cloud/HF Spaces pouvait échouer du jour au lendemain selon l'image de build de la plateforme, hors de votre contrôle.
 
-**Recommandation** : remplacer `hydralit`/`hydralit_components` (utilisés uniquement pour la barre de navigation et les sélecteurs d'options) par les composants natifs de Streamlit (`st.tabs`, `st.radio`, `st.selectbox`), qui couvrent aujourd'hui les mêmes besoins. C'est un changement visible pour l'utilisateur final (look de la nav) — je ne l'ai pas fait dans ce PR sans validation explicite. Dites-moi si vous voulez que je le fasse dans un PR séparé.
+**Action effectuée** : remplacement de la barre de navigation (`hc.nav_bar`) et des sélecteurs de tâche (`hc.option_bar`) par des `st.radio(horizontal=True)` natifs Streamlit, avec `format_func` pour conserver les icônes. Comportement fonctionnel identique (mêmes valeurs de retour, mêmes clés de session), rendu visuel légèrement différent (radio plutôt que barre à onglets stylée). `get_over_theme()` (thème hydralit) a été supprimé, devenu inutile. Les dépendances `hydralit`, ainsi que `streamlit-pills` et `streamlit-aggrid` (présentes dans `requirements.txt` mais jamais importées nulle part dans le code), et `werkzeug` (ne servait qu'à l'ancien système d'auth mort déjà supprimé), ont été retirées de `requirements.txt`.
+
+Vérifié : `pip install -r requirements.txt` réussit maintenant dans un environnement neuf, sans contournement de version de `setuptools`.
 
 ## 3. Autres recommandations non implémentées (à arbitrer)
 

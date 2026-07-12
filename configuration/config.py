@@ -45,32 +45,13 @@ def setup_page_config():
     """, unsafe_allow_html=True)
 
 
-def get_over_theme():
-    """
-    Return a dictionary containing the theme colors for the navigation bar.
-
-    The theme is overridden using the `override_theme` parameter of the
-    `nav_bar` function from the `hydralit_components` library.
-
-    :return: A dictionary of theme colors.
-    """
-    return {
-        "txc_inactive": "#FFFFFF",
-        "color": "#FF6300",
-        "txc_active": "#2D3E50",
-        "MENU_BACKGROUND": "#FF6300",
-        "txc_hover": "#4A6F8A",
-        "MENU_BACKGROUND_HOVER": "#4A6F8A",
-    }
-
-
 def get_menu_data(is_admin=False):
     """
     Retrieve the menu data for the application.
 
     This function provides a list of dictionaries, each representing a menu item
     with its associated icon and label. The menu items are used to render the
-    navigation bar in the application.
+    top navigation (st.radio) in the application.
 
     Parameters
     ----------

@@ -11,12 +11,6 @@ def mock_st():
 
 
 @pytest.fixture
-def mock_hc():
-    with patch('ui.home.render_home.hc') as mock:
-        yield mock
-
-
-@pytest.fixture
 def mock_extract_text_from_pdf():
     with patch('ui.home.render_home.extract_text_from_pdf') as mock:
         mock.return_value = "Mocked CV content"
@@ -46,14 +40,14 @@ def mock_huggingface_endpoint():
         yield mock
 
 
-def test_render_home(mock_st, mock_hc):
-    mock_hc.option_bar.return_value = "CV et offre d'emploi"
+def test_render_home(mock_st):
+    mock_st.radio.return_value = "CV et offre d'emploi"
     mock_st.file_uploader.return_value = None  # Simulate no file uploaded
     mock_st.text_area.return_value = ""  # Simulate empty text area
 
     render_home()
 
-    mock_hc.option_bar.assert_called()
+    mock_st.radio.assert_called()
     mock_st.file_uploader.assert_called_with("Importez votre CV en pdf",
                                              type="pdf")
     mock_st.text_area.assert_called_with("L'offre de poste", value="",
@@ -96,8 +90,8 @@ def test_process_cv_job_offer_handles_corrupt_pdf_without_crashing(
             mock_resume_generator.assert_not_called()
 
 
-def test_render_cv_job_offer_options_rejects_unknown_task(mock_st, mock_hc):
-    mock_hc.option_bar.return_value = None
+def test_render_cv_job_offer_options_rejects_unknown_task(mock_st):
+    mock_st.radio.return_value = None
     mock_st.file_uploader.return_value = MagicMock()
     mock_st.text_area.return_value = "Job description"
     mock_st.checkbox.return_value = True
@@ -107,8 +101,8 @@ def test_render_cv_job_offer_options_rejects_unknown_task(mock_st, mock_hc):
     mock_st.error.assert_called_with("Veuillez sélectionner une tâche avant de continuer.")
 
 
-def test_render_cv_job_offer_options_requires_consent(mock_st, mock_hc):
-    mock_hc.option_bar.return_value = "Score de correspondance"
+def test_render_cv_job_offer_options_requires_consent(mock_st):
+    mock_st.radio.return_value = "Score de correspondance"
     mock_st.file_uploader.return_value = MagicMock()
     mock_st.text_area.return_value = "Job description"
     mock_st.checkbox.return_value = False

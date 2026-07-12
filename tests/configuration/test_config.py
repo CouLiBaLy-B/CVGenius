@@ -3,7 +3,6 @@ from unittest.mock import patch, MagicMock
 
 from configuration.config import (
     setup_page_config,
-    get_over_theme,
     get_menu_data
 )
 
@@ -29,15 +28,15 @@ def test_setup_page_config(mock_st, mock_image):
     mock_st.markdown.assert_called()
 
 
-def test_get_over_theme():
-    theme = get_over_theme()
-    assert isinstance(theme, dict)
-    assert "txc_inactive" in theme
-    assert "color" in theme
-
-
-def test_get_menu_data():
+def test_get_menu_data_default():
     menu_data = get_menu_data()
     assert isinstance(menu_data, list)
     assert len(menu_data) == 2
     assert all(isinstance(item, dict) for item in menu_data)
+    assert not any(item.get("id") == "Admin" for item in menu_data)
+
+
+def test_get_menu_data_admin_adds_admin_entry():
+    menu_data = get_menu_data(is_admin=True)
+    assert len(menu_data) == 3
+    assert any(item.get("id") == "Admin" for item in menu_data)

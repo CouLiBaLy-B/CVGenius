@@ -1,6 +1,4 @@
 import streamlit as st
-import hydralit_components as hc
-from configuration.config import get_over_theme
 from scr.utils import extract_text_from_pdf, generate_pdf
 from scr.logs import log_action, log_error
 from scr.models import (
@@ -42,17 +40,18 @@ def render_home():
 
     :return: None
     """
-    option_data = [
-        {"icon": "📝", "label": "CV et offre d'emploi"},
-        {"icon": "📧", "label": "Completion de mail"},
-    ]
-    cv_mail_option = hc.option_bar(
-        option_definition=option_data,
-        title="Que voulez-vous faire ?",
+    option_icons = {
+        "CV et offre d'emploi": "📝",
+        "Completion de mail": "📧",
+    }
+    st.markdown("**Que voulez-vous faire ?**")
+    cv_mail_option = st.radio(
+        "Que voulez-vous faire ?",
+        list(option_icons),
+        format_func=lambda option: f"{option_icons[option]} {option}",
+        horizontal=True,
+        label_visibility="collapsed",
         key="PrimaryOption_",
-        override_theme=get_over_theme(),
-        font_styling={"font-class": "h1", "font-size": "100%", "color": "black"},
-        horizontal_orientation=True,
     )
 
     if cv_mail_option == "CV et offre d'emploi":
@@ -84,19 +83,13 @@ def render_cv_job_offer_options():
     will be called with the selected task, the uploaded PDF file and the job
     description as arguments.
     """
-    option_data = [
-        {"label": "Score de correspondance"},
-        {"label": "Rédaction de lettre de motivation"},
-        {"label": "Amélioration de CV"},
-    ]
-
-    task = hc.option_bar(
-        option_definition=option_data,
-        title="Que voulez-vous faire ?",
+    st.markdown("**Que voulez-vous faire ?**")
+    task = st.radio(
+        "Que voulez-vous faire ?",
+        list(TASK_STRATEGIES),
+        horizontal=True,
+        label_visibility="collapsed",
         key="PrimaryOption1",
-        override_theme=get_over_theme(),
-        font_styling={"font-class": "h2", "font-size": "100%"},
-        horizontal_orientation=True,
     )
 
     resume_pdf = st.file_uploader("Importez votre CV en pdf", type="pdf")

@@ -5,36 +5,46 @@ from ui.navigation.render_navigation import render_navigation
 
 
 @pytest.fixture
-def mock_hc():
-    with patch('ui.navigation.render_navigation.hc') as mock:
-        yield mock
-
-
-@pytest.fixture
-def mock_get_over_theme():
-    with patch('ui.navigation.render_navigation.get_over_theme') as mock:
-        mock.return_value = {"some": "theme"}
+def mock_st():
+    with patch('ui.navigation.render_navigation.st') as mock:
         yield mock
 
 
 @pytest.fixture
 def mock_get_menu_data():
     with patch('ui.navigation.render_navigation.get_menu_data') as mock:
-        mock.return_value = [{"id": "Test", "icon": "🏠", "label": "Test"}]
+        mock.return_value = [{"id": "Infos", "icon": "💡", "label": "Infos"}]
         yield mock
 
 
-def test_render_navigation(mock_hc, mock_get_over_theme, mock_get_menu_data):
+@pytest.fixture
+def mock_is_admin():
+    with patch('ui.navigation.render_navigation.is_admin') as mock:
+        mock.return_value = False
+        yield mock
+
+
+def test_render_navigation_includes_home_first(mock_st, mock_get_menu_data, mock_is_admin):
+    render_navigation()
+
+    mock_get_menu_data.assert_called_once_with(is_admin=False)
+    args, kwargs = mock_st.radio.call_args
+    assert args[1] == ["Home", "Infos"]
+    assert kwargs["horizontal"] is True
+    assert kwargs["key"] == "main_navigation"
+
+
+def test_render_navigation_format_func_renders_icon_and_label(mock_st, mock_get_menu_data, mock_is_admin):
+    render_navigation()
+
+    _, kwargs = mock_st.radio.call_args
+    assert kwargs["format_func"]("Home") == "🏠 Home"
+    assert kwargs["format_func"]("Infos") == "💡 Infos"
+
+
+def test_render_navigation_returns_selected_page(mock_st, mock_get_menu_data, mock_is_admin):
+    mock_st.radio.return_value = "Infos"
+
     result = render_navigation()
 
-    mock_get_over_theme.assert_called_once()
-    mock_get_menu_data.assert_called_once()
-    mock_hc.nav_bar.assert_called_once_with(
-        menu_definition=[{"id": "Test", "icon": "🏠", "label": "Test"}],
-        override_theme={"some": "theme"},
-        home_name="Home",
-        hide_streamlit_markers=True,
-        sticky_nav=True,
-        sticky_mode="pinned",
-    )
-    assert result == mock_hc.nav_bar.return_value
+    assert result == "Infos"
