@@ -1,9 +1,10 @@
 import streamlit as st
-from auth.authentification import authenticate_user
+from auth.authentification import authenticate_user, is_admin
 from ui.navigation.render_navigation import render_navigation
 from ui.home.render_home import render_home
 from ui.infos.render_infos import render_infos
 from ui.todos.render_todos import render_todos
+from ui.admin.render_admin import render_admin
 from configuration.config import setup_page_config
 from scr.documentation import documentations
 
@@ -46,6 +47,8 @@ def main(run_setup=True, test_mode=False):
             render_infos()
         elif selected_page == "To Do's":
             render_todos()
+        elif selected_page == "Admin" and is_admin():
+            render_admin()
     else:
         st.error("Authentication failed")
 

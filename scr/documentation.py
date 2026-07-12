@@ -2,6 +2,8 @@ import streamlit as st
 from PIL import Image
 import os
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def documentations():
     """
@@ -15,7 +17,7 @@ def documentations():
 
     :return: None
     """
-    st.sidebar.image(Image.open(os.path.join(os.getcwd(), "images", "background.jpg")))
+    st.sidebar.image(Image.open(os.path.join(PROJECT_ROOT, "images", "background.jpg")))
 
     st.sidebar.markdown("<div class='title'>CV Genius</div>", unsafe_allow_html=True)
     st.sidebar.markdown(
@@ -76,11 +78,11 @@ def documentations():
         )
 
         # Load and display images
-        doc1_path = os.path.join(os.getcwd(), "images", "doc1.png")
+        doc1_path = os.path.join(PROJECT_ROOT, "images", "doc1.png")
         doc1 = Image.open(doc1_path)
         st.image(doc1, caption="Manage app", use_column_width=True)
 
-        doc2_path = os.path.join(os.getcwd(), "images", "doc2.png")
+        doc2_path = os.path.join(PROJECT_ROOT, "images", "doc2.png")
         doc2 = Image.open(doc2_path)
         st.image(doc2, caption="Manage app", use_column_width=True)
 

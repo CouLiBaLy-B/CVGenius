@@ -1,2 +1,12 @@
-.secrets/secrets.toml
 .venv
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Real secrets must never be committed. Only *.example templates are tracked.
+.streamlit/secrets.toml
+auth/config.yaml
+.secrets/
+*.log

@@ -3,14 +3,25 @@ from langchain_core.prompts import PromptTemplate
 
 from requests.exceptions import HTTPError
 from scr.utils import ModelError
+from scr.logs import log_error
 from abc import ABC, abstractmethod
 
 from dotenv import load_dotenv
 import os
+import streamlit as st
+
 load_dotenv()
 
+RESUME_MODEL_REPO_ID = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
-HUGGINGFACE_HUB_API_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
+
+def _get_huggingface_token():
+    """Reads the Hugging Face API token from Streamlit secrets, falling back
+    to the environment (used for local scripts/tests outside Streamlit)."""
+    try:
+        return st.secrets["HUGGINGFACE_HUB_API_TOKEN"]
+    except Exception:
+        return os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 
 
 class ResumeAIStrategy(ABC):
@@ -25,13 +36,12 @@ class ResumeAIStrategy(ABC):
         """
 
         self.llm = HuggingFaceEndpoint(
-            repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
+            repo_id=RESUME_MODEL_REPO_ID,
             temperature=0.001,
             repetition_penalty=1.2,
             max_length=10000,
             max_new_tokens=2000,
-            huggingfacehub_api_token=HUGGINGFACE_HUB_API_TOKEN,
-            add_to_git_credential=True,
+            huggingfacehub_api_token=_get_huggingface_token(),
         )
 
     @abstractmethod
@@ -231,27 +241,27 @@ class ResumeGenerator:
         try:
             generated_text = self.resumeStrategy.generate(resume=self.resume, job_advert=self.job_advert)
             return generated_text
-        except TimeoutError:
+        except TimeoutError as e:
+            log_error("resume_generation_timeout", e)
             return "Le modèle a pris trop de temps pour répondre. Veuillez réessayer plus tard."
         except ModelError as e:
-            return f"Une erreur s'est produite lors de l'appel au modèle : {str(e)}"
-        except HTTPError as http_err:
-            if http_err.response.status_code == 500:
-                request_id = http_err.response.headers.get("x-request-id", "N/A")
-                return f"API problem: Internal Server Error (Request ID: {request_id})"
-            else:
-                return f"HTTP error occurred: {http_err}"
+            log_error("resume_generation_model_error", e)
+            return "Une erreur s'est produite lors de l'appel au modèle. Veuillez réessayer plus tard."
+        except HTTPError as e:
+            log_error("resume_generation_http_error", e)
+            return "Le service d'IA est momentanément indisponible. Veuillez réessayer plus tard."
         except Exception as e:
-            return f"Une erreur inattendue s'est produite : {str(e)}"
+            log_error("resume_generation_unexpected_error", e)
+            return "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
 
 
 class MailCompletion:
     def __init__(self):
         self.llm = HuggingFaceEndpoint(
-            repo_id="mistralai/MixTraL-8x7B-Instruct-v0.1",
+            repo_id=RESUME_MODEL_REPO_ID,
             temperature=0.001,
             max_new_tokens=1000,
-            huggingfacehub_api_token=HUGGINGFACE_HUB_API_TOKEN,
+            huggingfacehub_api_token=_get_huggingface_token(),
         )
 
     def mailcompletion(self, resume: str) -> str:

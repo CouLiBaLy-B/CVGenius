@@ -2,6 +2,8 @@ import streamlit as st
 from PIL import Image
 import os
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def setup_page_config():
     """
@@ -12,7 +14,7 @@ def setup_page_config():
 
     :return: None
     """
-    logo_path = os.path.join(os.getcwd(), "images", "logo.png")
+    logo_path = os.path.join(PROJECT_ROOT, "images", "logo.png")
     logo = Image.open(logo_path)
 
     st.set_page_config(
@@ -62,7 +64,7 @@ def get_over_theme():
     }
 
 
-def get_menu_data():
+def get_menu_data(is_admin=False):
     """
     Retrieve the menu data for the application.
 
@@ -70,11 +72,20 @@ def get_menu_data():
     with its associated icon and label. The menu items are used to render the
     navigation bar in the application.
 
+    Parameters
+    ----------
+    is_admin : bool, optional
+        Whether the current user has the admin role, by default False. When
+        True, an additional "Admin" entry is included for user management.
+
     Returns:
         list: A list of dictionaries, each containing an 'id', 'icon', and 'label' key.
     """
 
-    return [
+    menu_data = [
         {"id": "Infos", "icon": "💡", "label": "Infos"},
         {"icon": "🚀", "label": "To Do's"},
     ]
+    if is_admin:
+        menu_data.append({"id": "Admin", "icon": "🔑", "label": "Admin"})
+    return menu_data

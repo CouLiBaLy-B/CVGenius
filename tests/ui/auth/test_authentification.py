@@ -1,12 +1,44 @@
 import pytest
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, MagicMock
 
-from auth.authentification import authenticate_user, load_config
+from auth.authentification import (
+    authenticate_user,
+    load_config,
+    get_user_role,
+    is_admin,
+    clear_sensitive_session_state,
+)
+
+
+SAMPLE_AUTH_SECRETS = {
+    "auth": {
+        "cookie": {"name": "test_cookie", "key": "test_key", "expiry_days": 1},
+        "credentials": {
+            "usernames": {
+                "adminuser": {
+                    "name": "Admin User",
+                    "email": "admin@example.com",
+                    "role": "admin",
+                    "password": "hashed-admin",
+                },
+                "recruiter1": {
+                    "name": "Recruiter One",
+                    "email": "recruiter@example.com",
+                    "role": "recruiter",
+                    "password": "hashed-recruiter",
+                },
+            }
+        },
+        "pre-authorized": {"emails": []},
+    }
+}
 
 
 @pytest.fixture
 def mock_st():
     with patch('auth.authentification.st') as mock:
+        mock.secrets = SAMPLE_AUTH_SECRETS
+        mock.session_state = {}
         yield mock
 
 
@@ -16,43 +48,35 @@ def mock_stauth():
         yield mock
 
 
-@pytest.fixture
-def mock_yaml():
-    with patch('builtins.open', mock_open(read_data="""
-credentials: {}
-cookie:
-  name: "test"
-  key: "test"
-  expiry_days: 30
-pre-authorized: {}
-    """)), patch('auth.authentification.yaml.safe_load') as mock_yaml_load:
-        mock_yaml_load.return_value = {
-            'credentials': {},
-            'cookie': {'name': 'test', 'key': 'test', 'expiry_days': 30},
-            'pre-authorized': {}
-        }
-        yield mock_yaml_load
+def test_load_config_reads_from_secrets(mock_st):
+    config = load_config()
+
+    assert set(config['credentials']['usernames']) == {'adminuser', 'recruiter1'}
+    assert config['cookie']['name'] == 'test_cookie'
+    assert config['pre-authorized'] == {'emails': []}
 
 
-def test_load_config(mock_yaml):
-    result = load_config()
-    assert 'credentials' in result
-    assert 'cookie' in result
-    assert 'pre-authorized' in result
+def test_get_user_role(mock_st):
+    config = load_config()
+
+    assert get_user_role(config, 'adminuser') == 'admin'
+    assert get_user_role(config, 'recruiter1') == 'recruiter'
+    assert get_user_role(config, 'someone_not_configured') == 'recruiter'
 
 
-def test_authenticate_user_success(mock_st, mock_stauth, mock_yaml):
+def test_authenticate_user_success_stores_username_and_role(mock_st, mock_stauth):
     mock_authenticator = MagicMock()
-    mock_authenticator.login.return_value = ('Test User', True, 'testuser')
+    mock_authenticator.login.return_value = ('Admin User', True, 'adminuser')
     mock_stauth.Authenticate.return_value = mock_authenticator
 
     result = authenticate_user()
 
     assert result is True
-    mock_st.sidebar.markdown.assert_called_with("Bienvenue, Test User ! 👋")
+    assert mock_st.session_state['username'] == 'adminuser'
+    assert mock_st.session_state['role'] == 'admin'
 
 
-def test_authenticate_user_failure(mock_st, mock_stauth, mock_yaml):
+def test_authenticate_user_failure(mock_st, mock_stauth):
     mock_authenticator = MagicMock()
     mock_authenticator.login.return_value = (None, False, None)
     mock_stauth.Authenticate.return_value = mock_authenticator
@@ -61,3 +85,41 @@ def test_authenticate_user_failure(mock_st, mock_stauth, mock_yaml):
 
     assert result is False
     mock_st.error.assert_called_with('Username/password is incorrect')
+
+
+def test_authenticate_user_pending_clears_sensitive_state(mock_st, mock_stauth):
+    mock_st.session_state['offre'] = 'leftover job advert text'
+    mock_authenticator = MagicMock()
+    mock_authenticator.login.return_value = (None, None, None)
+    mock_stauth.Authenticate.return_value = mock_authenticator
+
+    result = authenticate_user()
+
+    assert result is False
+    assert 'offre' not in mock_st.session_state
+
+
+def test_is_admin(mock_st):
+    mock_st.session_state['role'] = 'admin'
+    assert is_admin() is True
+
+    mock_st.session_state['role'] = 'recruiter'
+    assert is_admin() is False
+
+
+def test_clear_sensitive_session_state_keeps_identity_keys(mock_st):
+    mock_st.session_state.update({
+        'offre': 'job advert text',
+        'mail_resume': b'pdf-bytes',
+        'consent_cv_job_offer': True,
+        'username': 'adminuser',
+        'role': 'admin',
+    })
+
+    clear_sensitive_session_state()
+
+    assert 'offre' not in mock_st.session_state
+    assert 'mail_resume' not in mock_st.session_state
+    assert 'consent_cv_job_offer' not in mock_st.session_state
+    assert mock_st.session_state['username'] == 'adminuser'
+    assert mock_st.session_state['role'] == 'admin'
